@@ -24,6 +24,13 @@ void config_USART(void){
   UBRR0=103;//9600
 }
 
+ISR(USART_RX_vect){
+  dato=UDR0;
+   if(dato=='a'){
+    ADCSRA|=(1<<ADSC);
+   }
+}
+
 ISR(ADC_vect){
   uint16_t adcvalor = ADC; // ADC ya combina ADCL y ADCH
     value = (adcvalor * 5.0) / 1023.0;
@@ -45,7 +52,7 @@ ISR(ADC_vect){
 ISR(USART_UDRE_vect){
   switch(flag){
     case 0:
-    UDR0=(unsigned char)(value)+'0';
+    UDR0=voltaje0+'0';
     flag=1;
     break;
     case 1:
@@ -53,11 +60,11 @@ ISR(USART_UDRE_vect){
     flag=2;
     break;
     case 2:
-    UDR0=((unsigned char)(value*10))%10+'0';
+    UDR0=voltaje1+'0';
     flag=3;
     break;
     case 3:
-    UDR0=((unsigned char)(value*100))%10+'0';
+    UDR0=voltaje2+'0';
     flag=4;
     break;
     case 4:
@@ -71,15 +78,6 @@ ISR(USART_UDRE_vect){
    _delay_ms(100);
     break;
   }
-}
-
-
-ISR(USART_RX_vect){
-  dato=UDR0;
-   if(dato=='a'){
-    dato=0;
-    ADCSRA|=(1<<ADSC);
-   }
 }
 
 
