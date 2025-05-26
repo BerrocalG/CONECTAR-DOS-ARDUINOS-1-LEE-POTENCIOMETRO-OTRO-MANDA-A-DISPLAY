@@ -12,7 +12,6 @@ uint8_t voltaje0 =0;
 uint8_t voltaje1 =0;
 uint8_t voltaje2 =0;
 
-
 void config_ADC(void){
   ADCSRA|=(1<<ADEN)|(1<<ADIE)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0);
   ADMUX|=(1<<REFS0);
@@ -32,7 +31,8 @@ ISR(USART_RX_vect){
 }
 
 ISR(ADC_vect){
-  uint16_t adcvalor = ADC; // ADC ya combina ADCL y ADCH
+  
+  uint16_t adcvalor = ADC; 
     value = (adcvalor * 5.0) / 1023.0;
 
   uint16_t voltaje = (uint16_t)(value * 100);
@@ -82,10 +82,37 @@ ISR(USART_UDRE_vect){
 
 
 int main(void){
+    DDRD |= 0xF0; 
+    DDRB |= 0x07; 
+
   config_USART();
   config_ADC();
   sei();
   while(1){
+    //de codigos pasados
+    // UNIDAD
+         PORTB &= ~0x07;
+        PORTB |= 0x02;
+        PORTD &= ~0xF0;
+        PORTD = (PORTD & 0x0F) | (unidad << 4);
+        _delay_ms(5);
+
+
+        // DECENA
+        PORTB &= ~0x07;
+        PORTB |= 0x01;
+        PORTD &= ~0xF0;
+        PORTD = (PORTD & 0x0F) | (decena << 4);
+        _delay_ms(5);
+
+
+        // CENTENA
+         PORTB &= ~0x07;
+        PORTB |= 0x04;
+        PORTD &= ~0xF0;
+        PORTD = (PORTD & 0x0F) | (centena << 4);
+        _delay_ms(5);
+
    
   }
 }
