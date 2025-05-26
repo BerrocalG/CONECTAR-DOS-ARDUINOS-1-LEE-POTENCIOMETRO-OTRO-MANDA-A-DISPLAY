@@ -4,25 +4,19 @@
 #include <avr/interrupt.h>
 float value=0;
 int flag=0;
+char dato =0;
+uint8_t unidad =0;
+uint8_t decena =0;
+uint8_t centena =0;
+uint8_t voltaje0 =0;
+uint8_t voltaje1 =0;
+uint8_t voltaje2 =0;
+
+
 void config_ADC(void){
   ADCSRA|=(1<<ADEN)|(1<<ADIE)|(1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0);
   ADMUX|=(1<<REFS0);
 }
-
-
-ISR(ADC_vect){
-  unsigned char low=ADCL;
-  unsigned char high=ADCH;
-  value=(high*256+low)*(5.0/1023.0);
-  UCSR0B|=(1<<UDRIE0);
-}
-
-
-char receive_char(void){
-  while(!(UCSR0A&(1<<RXC0)));
-  return UDR0;
-}
-
 
 void config_USART(void){
   UCSR0B|=(1<<RXEN0)|(1<<TXEN0)| (1<<RXCIE0);
@@ -30,8 +24,24 @@ void config_USART(void){
   UBRR0=103;//9600
 }
 
+ISR(ADC_vect){
+  uint16_t adcvalor = ADC; // ADC ya combina ADCL y ADCH
+    value = (adcvalor * 5.0) / 1023.0;
 
-unsigned char dato=0;
+  uint16_t voltaje = (uint16_t)(value * 100);
+    unidad  = voltaje % 10;
+    decena  = (voltaje / 10) % 10;
+    centena = (voltaje / 100) % 10;
+
+
+    // Para USART
+    voltaje0 = (uint8_t)value;             // Parte entera
+    voltaje1= ((uint8_t)(value * 10)) % 10; // Primera decimal
+    voltaje2 =((uint8_t)(value * 100)) % 10; // Segunda decimal
+
+  UCSR0B|=(1<<UDRIE0);
+}
+
 ISR(USART_UDRE_vect){
   switch(flag){
     case 0:
