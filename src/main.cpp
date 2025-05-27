@@ -85,7 +85,13 @@ int main(void) {
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-volatile uint8_t centena = 0, decena = 0, unidad = 0;
+uint8_t centena = 0, decena = 0, unidad = 0;
+char caracter0 = 0;
+char caracter1 = 0;
+char caracter2 = 0;
+char caracter3 = 0;
+uint8_t digito = 0;
+
 
 void config_USART(void) {
     UCSR0B = (1 << RXEN0) | (1 << RXCIE0); 
@@ -93,7 +99,48 @@ void config_USART(void) {
     UBRR0 = 103; 
 }
 
+ISR(USART_RX_vect) {
+    char c = UDR0;
 
+    if (digito == 0) {
+        if (c >= '0' && c <= '9') {
+            caracter0 = c;
+            digito = 1;
+        }
+    } else if (digito == 1) {
+        if (c == '.') {
+            caracter1 = c;
+            digito = 2;
+        } else {
+            digito = 0;
+        }
+    } else if (digito == 2) {
+        if (c >= '0' && c <= '9') {
+            caracter2 = c;
+            digito = 3;
+        } else {
+            digito = 0;
+        }
+    } else if (digito == 3) {
+        if (c >= '0' && c <= '9') {
+            caracter3 = c;
+            digito = 4;
+        } else {
+            digito = 0;
+        }
+    } else if (digito == 4) {
+        if (c == 13 || c == 10) {
+      centena = caracter0 - '0';
+            decena = caracter2 - '0';
+          unidad = caracter3 - '0';
+            digito = 0;
+        } else {
+            digito = 0;
+        }
+    } else {
+        digito = 0;
+    }
+}
 int main(void) {
     DDRD |= 0xF0;
     DDRB|= 0x07; 
